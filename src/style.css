@@ -1,0 +1,455 @@
+:root {
+  color-scheme: dark;
+  --ink: #120e16;
+  --paper: #f3e6cf;
+  --dim: #cbbfa6;
+  --vermillion: #d94a38;
+  --gold: #e4b15a;
+  --indigo: #241c33;
+  --line: rgba(243, 230, 207, 0.28);
+  font-family: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app {
+  margin: 0;
+  height: 100%;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+#view {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: var(--paper);
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+}
+
+.hud, .screen, .toast, .bossbar, .popups, .minimap, .bars, .combo, .jutsu, .floor-tag, .hint, .mute, .quest, .bark {
+  position: absolute;
+}
+
+.hud {
+  inset: 0;
+  pointer-events: none;
+}
+
+.screen {
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(12, 8, 16, 0.28), rgba(12, 8, 16, 0.72));
+}
+
+.panel {
+  width: min(640px, calc(100% - 32px));
+  padding: 36px 40px 28px;
+  background: rgba(20, 14, 24, 0.82);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.kana {
+  letter-spacing: 0.45em;
+  font-size: 12px;
+  color: var(--gold);
+  margin: 0 0 8px;
+}
+
+h1 {
+  font-family: 'Shippori Mincho', 'Iowan Old Style', Palatino, serif;
+  font-weight: 700;
+  font-size: clamp(48px, 8vw, 84px);
+  line-height: 0.9;
+  margin: 0;
+}
+
+.sub {
+  margin: 10px 0 0;
+  color: var(--dim);
+  max-width: 46ch;
+}
+
+.actions, .cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+button, .card {
+  pointer-events: auto;
+  font: inherit;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--vermillion);
+  border-color: transparent;
+  color: #fff8f2;
+  font-weight: 700;
+}
+
+button:hover, .card:hover {
+  border-color: var(--gold);
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 18px 0 0;
+  color: var(--dim);
+  font-size: 14px;
+}
+
+.keys b { color: var(--paper); font-weight: 500; }
+
+.bossbar {
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 280px));
+  text-align: center;
+}
+
+.bossbar .name {
+  font-family: 'Shippori Mincho', serif;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.track {
+  height: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 0%;
+  background: var(--vermillion);
+}
+
+.fill.chakra { background: #7eb6ff; }
+.fill.boss { background: linear-gradient(90deg, #8e2a22, #e4b15a); }
+
+.bars {
+  left: 22px;
+  top: 92px;
+  width: min(280px, calc(100% - 180px));
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(12, 8, 14, 0.72);
+  border: 1px solid var(--line);
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 rgba(160, 16, 16, 0);
+}
+
+.vignette.on {
+  box-shadow: inset 0 0 160px rgba(160, 16, 16, 0.55);
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+
+.floor-tag {
+  top: 18px;
+  left: 22px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+}
+
+.floor-tag small {
+  display: block;
+  color: var(--dim);
+  letter-spacing: 0.14em;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 11px;
+}
+
+.seals {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 18px;
+}
+
+.seals span {
+  border: 1px solid var(--line);
+  padding: 2px 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+
+.combo {
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--gold);
+  text-shadow: 0 2px 0 #000;
+}
+
+.jutsu {
+  right: 22px;
+  bottom: 78px;
+  text-align: right;
+}
+
+.jutsu b { display: block; font-size: 16px; }
+.jutsu span { color: var(--dim); font-size: 12px; letter-spacing: 0.12em; }
+
+.hint {
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  color: var(--dim);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.screen.tale {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(228, 177, 90, 0.16), transparent 32%),
+    linear-gradient(180deg, #2a1c22, #120c10);
+}
+
+.tale-stage {
+  width: min(860px, calc(100% - 32px));
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 28px;
+  align-items: end;
+  padding: 28px;
+  background: rgba(16, 10, 14, 0.92);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.tale-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tale-portrait {
+  width: 200px;
+  height: 260px;
+  display: block;
+  background: #140e14;
+  border: 1px solid var(--line);
+}
+
+.tale-copy h2 {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1;
+  margin: 0;
+}
+
+.tale-copy .role {
+  margin: 4px 0 0;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+
+.tale-copy .line {
+  margin: 8px 0 0;
+  font-size: 18px;
+  line-height: 1.5;
+  min-height: 4.6em;
+  max-width: 46ch;
+}
+
+.tale-copy .objective {
+  margin: 4px 0 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+
+.quest {
+  left: 22px;
+  bottom: 22px;
+  width: min(340px, calc(100% - 380px));
+  padding: 8px 12px;
+  background: rgba(12, 8, 14, 0.78);
+  border: 1px solid var(--line);
+  pointer-events: none;
+}
+
+.quest small {
+  color: var(--gold);
+  letter-spacing: 0.14em;
+  font-size: 11px;
+}
+
+.quest b {
+  display: block;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.quest span {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.bark {
+  left: 50%;
+  bottom: 128px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: min(520px, calc(100% - 48px));
+  padding: 8px 12px 8px 8px;
+  background: rgba(12, 8, 14, 0.88);
+  border: 1px solid var(--gold);
+  pointer-events: none;
+}
+
+.bark canvas {
+  width: 54px;
+  height: 70px;
+  flex: none;
+  background: #140e14;
+}
+
+.bark p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.pad {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.pad-btn {
+  min-width: 84px;
+  background: rgba(12, 8, 14, 0.82);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.toast {
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  text-align: center;
+  text-shadow: 0 8px 24px #000;
+  pointer-events: none;
+}
+
+.minimap {
+  right: 22px;
+  top: 18px;
+  width: 132px;
+  height: 168px;
+  background: rgba(12, 8, 14, 0.55);
+  border: 1px solid var(--line);
+}
+
+.popups { inset: 0; overflow: hidden; }
+
+.popup {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-weight: 700;
+  text-shadow: 0 1px 0 #000;
+  pointer-events: none;
+}
+
+.popup.hurt { color: #fff; }
+.popup.heal { color: #8ee0b0; }
+.popup.chakra { color: #9ec4ff; }
+.popup.miss { color: var(--dim); }
+
+.cards { align-items: stretch; }
+.card {
+  flex: 1 1 160px;
+  text-align: left;
+  background: rgba(20, 14, 24, 0.9);
+}
+.card .kana { margin-bottom: 4px; }
+.card strong { display: block; font-family: 'Shippori Mincho', serif; font-size: 20px; }
+.card p { color: var(--dim); margin: 8px 0 0; font-size: 14px; }
+
+.dash-pips { display: flex; gap: 4px; }
+.dash-pips i {
+  width: 14px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  display: block;
+}
+.dash-pips i.on { background: var(--gold); }
+
+.mute {
+  left: 210px;
+  top: 18px;
+  pointer-events: auto;
+  background: rgba(12, 8, 14, 0.55);
+}
+
+.hidden { display: none !important; }
+
+.warn { color: #ffb4a8; }
+
+@media (max-width: 720px) {
+  .hint { display: none; }
+  .bossbar { width: calc(100% - 40px); }
+  .panel { padding: 24px; }
+  .tale-stage { grid-template-columns: 1fr; }
+  .quest { width: calc(100% - 44px); }
+}
