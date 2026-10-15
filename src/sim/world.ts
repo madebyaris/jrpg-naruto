@@ -3,6 +3,7 @@ import { buildFloor, nid, spawnBoss, spawnSkirmish } from './floor'
 import { bossName } from './names'
 import { freshSeed } from './rng'
 import { derive, draftSeals, unlockedJutsu } from './seals'
+import { arrivalTale, emptyQuest, fallTale, questOf } from './story'
 import { DASH_SPEED, HEAVY, HITSTOP_HEAVY, HITSTOP_LIGHT, JUTSU_COST, JUTSU_TIME, LIGHT } from './tune'
 import type { InputFrame, JutsuSlot, LightStep, Player, Stats, SwingPhase, World } from './types'
 
@@ -57,6 +58,9 @@ function baseWorld(floor: number, bestFloor: number, seed: number): World {
     kills: 0,
     floorsCleared: 0,
     lowChakra: 0,
+    quest: emptyQuest(),
+    bark: null,
+    spoke: false,
   }
   world.plan = buildFloor(world, floor)
   return world
@@ -108,10 +112,21 @@ export function startRun(bestFloor: number, seed = freshSeed()): World {
   world.phase = { kind: 'play' }
   world.intro = 1.05
   world.bossFall = -1
+  world.quest = questOf(arrivalTale(1))
+  world.bark = null
+  world.spoke = false
   world.banner = `Floor 1  —  ${world.plan.name}. Walk in.`
   world.bannerT = 2.5
   world.bestFloor = Math.max(bestFloor, 1)
   return world
+}
+
+export function presentArrival(world: World): void {
+  const tale = arrivalTale(world.floor)
+  world.quest = questOf(tale)
+  world.bark = null
+  world.spoke = false
+  world.phase = { kind: 'tale', tale, index: 0, after: 'play', offers: null }
 }
 
 function placePlayer(world: World, player: Player, stats: Stats): void {
@@ -152,7 +167,6 @@ export function chooseSeal(world: World, index: number): void {
   world.lockId = null
   world.bossFall = -1
   world.intro = 1.05
-  world.phase = { kind: 'play' }
   world.banner = `Floor ${world.floor}  —  ${world.plan.name}`
   world.bannerT = 2.6
   world.bestFloor = Math.max(world.bestFloor, world.floor)
@@ -160,12 +174,29 @@ export function chooseSeal(world: World, index: number): void {
   if (!slots.includes(world.jutsu)) world.jutsu = slots[0] ?? 0
   spawnSkirmish(world)
   spawnBoss(world)
+  presentArrival(world)
+}
+
+export function advanceTale(world: World): void {
+  if (world.phase.kind !== 'tale') return
+  const { tale, index, after, offers } = world.phase
+  if (index + 1 < tale.lines.length) {
+    world.phase = { kind: 'tale', tale, index: index + 1, after, offers }
+    return
+  }
+  world.quest = questOf(tale)
+  if (after === 'reward' && offers) {
+    world.phase = { kind: 'reward', offers }
+    return
+  }
+  world.phase = { kind: 'play' }
 }
 
 export function openReward(world: World): void {
   const boss = bossOf(world)
   world.floorsCleared += 1
-  world.phase = { kind: 'reward', offers: draftSeals(world) }
+  const tale = fallTale(world.floor, boss?.boss ?? world.plan.boss)
+  world.phase = { kind: 'tale', tale, index: 0, after: 'reward', offers: draftSeals(world) }
   world.banner = boss ? `${bossName(boss.boss)} falls` : 'The gate opens'
   world.bannerT = 3
   world.bestFloor = Math.max(world.bestFloor, world.floor)
@@ -173,6 +204,7 @@ export function openReward(world: World): void {
 
 export function downPlayer(world: World): void {
   world.phase = { kind: 'downed' }
+  world.bark = null
   world.banner = 'The pagoda keeps your shadow'
   world.bannerT = 6
 }

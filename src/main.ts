@@ -8,7 +8,7 @@ import { step } from './sim/step'
 import type { Player, World } from './sim/types'
 import { isPlayer } from './sim/types'
 import { mountUi } from './ui'
-import { chooseSeal, createShowcase, startRun } from './sim/world'
+import { advanceTale, chooseSeal, createShowcase, presentArrival, startRun } from './sim/world'
 
 const canvas = document.querySelector('#view')
 const overlay = document.querySelector('#overlay')
@@ -67,6 +67,7 @@ function descend(): void {
   audio.resume()
   audio.ui()
   world = startRun(best)
+  presentArrival(world)
   rememberBest()
   yaw = Math.PI
   dist = 9.4
@@ -104,6 +105,10 @@ ui.setHandlers({
   mute() {
     audio.toggleMute()
     audio.resume()
+  },
+  advance() {
+    audio.ui()
+    advanceTale(world)
   },
 })
 
@@ -158,6 +163,11 @@ function frame(now: number): void {
       first = false
     }
     rememberBest()
+  } else if (world.phase.kind === 'tale') {
+    if (input.confirmEdge()) {
+      audio.ui()
+      advanceTale(world)
+    }
   } else if (world.phase.kind === 'reward') {
     const slot = input.sealSlot()
     if (slot != null) {

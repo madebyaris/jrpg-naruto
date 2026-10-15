@@ -43,7 +43,7 @@ html, body, #app {
   opacity: 0.35;
 }
 
-.hud, .screen, .toast, .bossbar, .popups, .minimap, .bars, .combo, .jutsu, .floor-tag, .hint, .mute {
+.hud, .screen, .toast, .bossbar, .popups, .minimap, .bars, .combo, .jutsu, .floor-tag, .hint, .mute, .quest, .bark {
   position: absolute;
 }
 
@@ -248,6 +248,122 @@ button:hover, .card:hover {
   white-space: nowrap;
 }
 
+.screen.tale {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(228, 177, 90, 0.16), transparent 32%),
+    linear-gradient(180deg, #2a1c22, #120c10);
+}
+
+.tale-stage {
+  width: min(860px, calc(100% - 32px));
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 28px;
+  align-items: end;
+  padding: 28px;
+  background: rgba(16, 10, 14, 0.92);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.tale-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tale-portrait {
+  width: 200px;
+  height: 260px;
+  display: block;
+  background: #140e14;
+  border: 1px solid var(--line);
+}
+
+.tale-copy h2 {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1;
+  margin: 0;
+}
+
+.tale-copy .role {
+  margin: 4px 0 0;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+
+.tale-copy .line {
+  margin: 8px 0 0;
+  font-size: 18px;
+  line-height: 1.5;
+  min-height: 4.6em;
+  max-width: 46ch;
+}
+
+.tale-copy .objective {
+  margin: 4px 0 8px;
+  color: var(--dim);
+  font-size: 14px;
+}
+
+.quest {
+  left: 22px;
+  bottom: 22px;
+  width: min(340px, calc(100% - 380px));
+  padding: 8px 12px;
+  background: rgba(12, 8, 14, 0.78);
+  border: 1px solid var(--line);
+  pointer-events: none;
+}
+
+.quest small {
+  color: var(--gold);
+  letter-spacing: 0.14em;
+  font-size: 11px;
+}
+
+.quest b {
+  display: block;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.quest span {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.bark {
+  left: 50%;
+  bottom: 128px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: min(520px, calc(100% - 48px));
+  padding: 8px 12px 8px 8px;
+  background: rgba(12, 8, 14, 0.88);
+  border: 1px solid var(--gold);
+  pointer-events: none;
+}
+
+.bark canvas {
+  width: 54px;
+  height: 70px;
+  flex: none;
+  background: #140e14;
+}
+
+.bark p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
 .pad {
   position: absolute;
   right: 22px;
@@ -334,4 +450,6 @@ button:hover, .card:hover {
   .hint { display: none; }
   .bossbar { width: calc(100% - 40px); }
   .panel { padding: 24px; }
+  .tale-stage { grid-template-columns: 1fr; }
+  .quest { width: calc(100% - 44px); }
 }

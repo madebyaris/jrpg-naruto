@@ -1,6 +1,8 @@
+import { portrait } from './render/portraits'
 import { bossName } from './sim/names'
 import { derive, jutsuName, sealCopy } from './sim/seals'
-import type { Boss, Seal, World } from './sim/types'
+import { deathWords, speakerCard } from './sim/story'
+import type { Boss, Seal, SpeakerId, World } from './sim/types'
 import { isBoss, isPlayer } from './sim/types'
 
 export type PopupDot = {
@@ -19,6 +21,7 @@ export type UiHandlers = {
   title: () => void
   resume: () => void
   mute: () => void
+  advance: () => void
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -46,7 +49,7 @@ export function mountUi(root: HTMLElement): Ui {
   titlePanel.append(
     el('p', 'kana', '影路'),
     el('h1', undefined, 'KAGERO'),
-    el('p', 'sub', 'A rogue-like action JRPG. 2D fighters stand in a 3D pagoda. Every floor ends in a boss. Death ends the run; the seals you chose die with it.'),
+    el('p', 'sub', 'You are Asa, last seal-bearer of the Hollow Seal. The road under the porch has three locks. Aya waits where a living name can still stand.'),
   )
   const titleKeys = el('div', 'keys')
   for (const [key, label] of [
@@ -68,6 +71,22 @@ export function mountUi(root: HTMLElement): Ui {
   const best = el('p', 'sub')
   titlePanel.append(titleKeys, titleActions, best)
   title.append(titlePanel)
+
+  const tale = el('section', 'screen tale hidden')
+  const taleStage = el('div', 'tale-stage')
+  const talePortrait = el('canvas', 'tale-portrait')
+  talePortrait.width = 200
+  talePortrait.height = 260
+  const taleCopy = el('div', 'tale-copy')
+  const taleAct = el('p', 'kana')
+  const taleWho = el('h2')
+  const taleRole = el('p', 'role')
+  const taleLine = el('p', 'line')
+  const taleQuest = el('p', 'objective')
+  const taleNext = el('button', 'primary', 'Continue')
+  taleCopy.append(taleAct, taleWho, taleRole, taleLine, taleQuest, taleNext)
+  taleStage.append(talePortrait, taleCopy)
+  tale.append(taleStage)
 
   const reward = el('section', 'screen hidden')
   const rewardPanel = el('div', 'panel')
@@ -136,6 +155,17 @@ export function mountUi(root: HTMLElement): Ui {
   const jutsuKana = el('span', undefined, 'JUTSU')
   const jutsuNameEl = el('b')
   jutsu.append(jutsuKana, jutsuNameEl)
+  const quest = el('div', 'quest')
+  const questAct = el('small')
+  const questName = el('b')
+  const questBody = el('span')
+  quest.append(questAct, questName, questBody)
+  const bark = el('div', 'bark hidden')
+  const barkPortrait = el('canvas')
+  barkPortrait.width = 200
+  barkPortrait.height = 260
+  const barkText = el('p')
+  bark.append(barkPortrait, barkText)
   const hint = el('div', 'hint', 'WASD run · Shift dash · J combo · K heavy · L jutsu · Q/E camera')
   const pad = el('div', 'pad')
   const attackBtn = el('button', 'pad-btn', 'Attack')
@@ -143,9 +173,9 @@ export function mountUi(root: HTMLElement): Ui {
   const jutsuBtn = el('button', 'pad-btn', 'Jutsu')
   pad.append(attackBtn, dashBtn, jutsuBtn)
   const popups = el('div', 'popups')
-  hud.append(vignette, floorTag, mute, bossbar, toast, map, bars, combo, jutsu, hint, pad, popups)
+  hud.append(vignette, floorTag, mute, bossbar, toast, map, bars, combo, jutsu, hint, quest, bark, pad, popups)
 
-  root.append(grain, title, reward, downed, paused, hud)
+  root.append(grain, title, tale, reward, downed, paused, hud)
 
   let handlers: UiHandlers = {
     descend: () => undefined,
@@ -153,14 +183,26 @@ export function mountUi(root: HTMLElement): Ui {
     title: () => undefined,
     resume: () => undefined,
     mute: () => undefined,
+    advance: () => undefined,
   }
   descend.addEventListener('click', () => handlers.descend())
   again.addEventListener('click', () => handlers.title())
   resume.addEventListener('click', () => handlers.resume())
   quit.addEventListener('click', () => handlers.title())
   mute.addEventListener('click', () => handlers.mute())
+  taleNext.addEventListener('click', () => handlers.advance())
 
   let rewardKey = ''
+  let taleKey = ''
+  let barkKey = ''
+
+  function paintFace(canvas: HTMLCanvasElement, id: SpeakerId): void {
+    const face = portrait(id)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(face, 0, 0, canvas.width, canvas.height)
+  }
 
   function show(node: HTMLElement, on: boolean): void {
     node.classList.toggle('hidden', !on)
@@ -211,10 +253,11 @@ export function mountUi(root: HTMLElement): Ui {
   function sync(world: World, dots: PopupDot[], muted: boolean): void {
     const playing = world.phase.kind === 'play' || world.phase.kind === 'pause'
     show(title, world.phase.kind === 'title')
+    show(tale, world.phase.kind === 'tale')
     show(reward, world.phase.kind === 'reward')
     show(downed, world.phase.kind === 'downed')
     show(paused, world.phase.kind === 'pause')
-    show(hud, world.phase.kind !== 'title')
+    show(hud, world.phase.kind !== 'title' && world.phase.kind !== 'tale')
     mute.textContent = muted ? 'Sound off' : 'Sound on'
     best.textContent = world.bestFloor > 0 ? `Deepest floor reached: ${world.bestFloor}` : 'The gate has not been passed.'
 
@@ -242,6 +285,22 @@ export function mountUi(root: HTMLElement): Ui {
     }
     floorSmall.textContent = `FLOOR ${world.floor}`
     floorName.textContent = world.plan.name
+    questAct.textContent = world.quest.act
+    questName.textContent = world.quest.name
+    questBody.textContent = world.quest.objective
+    const speaking = world.bark
+    show(bark, playing && speaking != null)
+    if (speaking) {
+      const key = `${speaking.speaker}:${speaking.text}`
+      if (key !== barkKey) {
+        barkKey = key
+        paintFace(barkPortrait, speaking.speaker)
+        const card = speakerCard(speaking.speaker)
+        barkText.textContent = `${card.name}: ${speaking.text}`
+      }
+    } else {
+      barkKey = ''
+    }
     hint.classList.toggle('hidden', world.floor > 1 || world.time > 10)
     toast.textContent = world.bannerT > 0 ? world.banner : ''
 
@@ -250,6 +309,26 @@ export function mountUi(root: HTMLElement): Ui {
     if (boss) {
       bossNameEl.textContent = bossName(boss.boss)
       bossFill.style.width = `${Math.max(0, boss.hp / boss.maxHp) * 100}%`
+    }
+
+    if (world.phase.kind === 'tale') {
+      const { tale: story, index, after } = world.phase
+      const line = story.lines[index] ?? story.lines[0]
+      const key = `${story.id}:${index}`
+      if (line && key !== taleKey) {
+        taleKey = key
+        paintFace(talePortrait, line.speaker)
+        const card = speakerCard(line.speaker)
+        taleAct.textContent = story.act
+        taleWho.textContent = card.name
+        taleRole.textContent = card.role
+        taleLine.textContent = line.text
+        taleQuest.textContent = `${story.quest} — ${story.objective}`
+        const last = index >= story.lines.length - 1
+        taleNext.textContent = last ? (after === 'reward' ? 'Choose a name' : 'Walk in') : 'Continue'
+      }
+    } else {
+      taleKey = ''
     }
 
     if (world.phase.kind === 'reward') {
@@ -267,7 +346,7 @@ export function mountUi(root: HTMLElement): Ui {
 
     if (world.phase.kind === 'downed') {
       const names = world.seals.map((seal) => sealCopy(seal).name).join(', ')
-      downBody.textContent = `Fell on floor ${world.floor} (${world.plan.name}). Cleared ${world.floorsCleared}. Foes scattered: ${world.kills}. Best floor ${world.bestFloor}. Seals: ${names || 'none'}.`
+      downBody.textContent = `${deathWords(world.floor)} Fell on floor ${world.floor} (${world.plan.name}). Cleared ${world.floorsCleared}. Foes scattered: ${world.kills}. Best floor ${world.bestFloor}. Seals: ${names || 'none'}.`
     }
 
     popups.replaceChildren()

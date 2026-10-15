@@ -1,5 +1,6 @@
 import { nid, roomAt, roomInside, solids } from './floor'
 import { angleTo, hypot, inArc, inCircle, inRotatedRect, pushCircleOut } from './math'
+import { bossBark } from './story'
 import { FOE_BASE, MOVES, powerScale } from './tune'
 import type {
   Actor,
@@ -511,7 +512,14 @@ export function wakeRooms(world: World): void {
   if (!room) return
   for (const actor of world.actors) {
     if (isFoe(actor) && actor.room === room.index) actor.awake = true
-    if (isBoss(actor) && actor.room === room.index) actor.awake = true
+    if (isBoss(actor) && actor.room === room.index) {
+      if (!actor.awake && !world.spoke) {
+        const line = bossBark(actor.boss)
+        world.bark = { speaker: line.speaker, text: line.text, life: 4.2 }
+        world.spoke = true
+      }
+      actor.awake = true
+    }
   }
 }
 

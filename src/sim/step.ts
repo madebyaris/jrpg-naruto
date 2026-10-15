@@ -319,6 +319,10 @@ export function step(world: World, input: InputFrame, dt: number): void {
   if (world.phase.kind !== 'play') return
   world.time += dt
   world.bannerT = Math.max(0, world.bannerT - dt)
+  if (world.bark) {
+    world.bark.life -= dt
+    if (world.bark.life <= 0) world.bark = null
+  }
   world.shake = Math.max(0, world.shake - dt * 1.6)
   if (world.intro > 0) {
     world.intro -= dt

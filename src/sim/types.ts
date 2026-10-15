@@ -212,10 +212,38 @@ export type FloorPlan = {
   apron: number
 }
 
+export type SpeakerId = 'aya' | 'soot' | 'hoshi' | 'asa' | 'kurogane' | 'futae' | 'seijin'
+
+export type TaleLine = {
+  speaker: SpeakerId
+  text: string
+}
+
+export type Tale = {
+  id: string
+  act: string
+  quest: string
+  objective: string
+  lines: TaleLine[]
+}
+
+export type Quest = {
+  act: string
+  name: string
+  objective: string
+}
+
+export type Bark = {
+  speaker: SpeakerId
+  text: string
+  life: number
+}
+
 export type Phase =
   | { kind: 'title' }
   | { kind: 'play' }
   | { kind: 'pause' }
+  | { kind: 'tale'; tale: Tale; index: number; after: 'play' | 'reward'; offers: [Seal, Seal, Seal] | null }
   | { kind: 'reward'; offers: [Seal, Seal, Seal] }
   | { kind: 'downed' }
 
@@ -245,6 +273,9 @@ export type World = {
   kills: number
   floorsCleared: number
   lowChakra: number
+  quest: Quest
+  bark: Bark | null
+  spoke: boolean
 }
 
 export type InputFrame = {
